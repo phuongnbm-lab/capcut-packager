@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-const VERSION = '2026.05.23'
+const VERSION = '2026.05.24'
 const AUTHOR = 'Bá Phương'
 const ZALO = '0904066020'
 const REPO = 'phuongnbm-lab/capcut-packager'
@@ -40,32 +40,6 @@ export default function Header({ activeTab, setActiveTab }) {
     setUpdateStatus('downloading')
     setDownloadPercent(0)
     await window.electronAPI?.downloadAndInstallUpdate(downloadUrl)
-  }
-
-  const versionBadgeStyle = () => {
-    if (updateStatus === 'available') return {
-      fontSize: 10, padding: '2px 8px', borderRadius: 4, fontWeight: 700,
-      background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-      color: '#fff', cursor: 'pointer',
-      boxShadow: '0 0 10px rgba(34,197,94,0.7)',
-      animation: 'pulse-update 1.8s ease-in-out infinite',
-    }
-    if (updateStatus === 'downloading') return {
-      fontSize: 10, padding: '2px 8px', borderRadius: 4, fontWeight: 700,
-      background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-      color: '#fff', cursor: 'default',
-      minWidth: 80,
-    }
-    return {
-      fontSize: 10, color: 'var(--text-muted)',
-      background: 'var(--bg-input)', padding: '2px 6px', borderRadius: 4,
-    }
-  }
-
-  const versionLabel = () => {
-    if (updateStatus === 'available') return `⬆ v${latestVersion} available!`
-    if (updateStatus === 'downloading') return `⬇ ${downloadPercent}%`
-    return `v${VERSION}`
   }
 
   return (
@@ -219,18 +193,36 @@ export default function Header({ activeTab, setActiveTab }) {
             <img src="icon.ico" alt="logo" style={{ width: 24, height: 24, borderRadius: 5, objectFit: 'contain' }} />
             <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>CapCut Packager</span>
 
-            {/* Version badge — glows green when update available, click to auto-update */}
-            <span
-              onClick={updateStatus === 'available' ? handleUpdate : undefined}
-              style={versionBadgeStyle()}
-              title={
-                updateStatus === 'available' ? `Click để tải & cài v${latestVersion} tự động` :
-                updateStatus === 'downloading' ? `Đang tải bản mới...` :
-                `Phiên bản hiện tại`
-              }
-            >
-              {versionLabel()}
+            {/* Version badge — always shows current version */}
+            <span style={{
+              fontSize: 10, color: 'var(--text-muted)',
+              background: 'var(--bg-input)', padding: '2px 6px', borderRadius: 4,
+            }}>
+              v{VERSION}
             </span>
+
+            {/* Update button — only visible when update available */}
+            {(updateStatus === 'available' || updateStatus === 'downloading') && (
+              <button
+                onClick={updateStatus === 'available' ? handleUpdate : undefined}
+                style={{
+                  WebkitAppRegion: 'no-drag',
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '3px 10px', borderRadius: 5,
+                  background: updateStatus === 'downloading'
+                    ? 'linear-gradient(135deg, #3b82f6, #2563eb)'
+                    : 'linear-gradient(135deg, #22c55e, #15803d)',
+                  color: '#fff', fontSize: 11, fontWeight: 700,
+                  border: 'none',
+                  cursor: updateStatus === 'downloading' ? 'default' : 'pointer',
+                  animation: updateStatus === 'available' ? 'blink-update 1s ease-in-out infinite' : 'none',
+                  boxShadow: '0 0 10px rgba(34,197,94,0.5)',
+                }}
+                title={updateStatus === 'downloading' ? `Đang tải...` : `Cài v${latestVersion} tự động`}
+              >
+                {updateStatus === 'downloading' ? `⬇ ${downloadPercent}%` : '⬆ Update'}
+              </button>
+            )}
 
             {/* Author badge */}
             <button
@@ -308,9 +300,9 @@ export default function Header({ activeTab, setActiveTab }) {
       </div>
 
       <style>{`
-        @keyframes pulse-update {
-          0%, 100% { box-shadow: 0 0 8px rgba(34,197,94,0.6); transform: scale(1); }
-          50% { box-shadow: 0 0 18px rgba(34,197,94,1); transform: scale(1.06); }
+        @keyframes blink-update {
+          0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(34,197,94,0.5); }
+          50% { opacity: 0.55; box-shadow: 0 0 18px rgba(34,197,94,1); }
         }
       `}</style>
     </>
