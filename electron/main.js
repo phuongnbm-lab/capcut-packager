@@ -411,8 +411,10 @@ ipcMain.handle('download-and-install-update', async (event, downloadUrl) => {
 
   try {
     await download(downloadUrl)
-    spawn(tmpPath, [], { detached: true, stdio: 'ignore' }).unref()
-    app.quit()
+    // /S = silent install, no wizard popup
+    const child = spawn(tmpPath, ['/S'], { detached: true, stdio: 'ignore' })
+    child.unref()
+    setTimeout(() => app.quit(), 500)
     return { success: true }
   } catch (err) {
     try { fs.unlinkSync(tmpPath) } catch {}
