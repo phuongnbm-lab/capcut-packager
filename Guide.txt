@@ -1,0 +1,2 @@
+1. CMD
+2. npm run dev

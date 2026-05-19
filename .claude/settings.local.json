@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.autokroma.com)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\APP\\\\CAPCUT_PACKAGE\" -Recurse | Select-Object -Property FullName | ForEach-Object { $_.FullName } | Sort-Object)",
+      "PowerShell(@\\(ls -la \"D:\\\\APP\\\\CAPCUT_PACKAGE\\\\\" 2>$null\\).Count)",
+      "PowerShell(cmd /c \"dir D:\\\\APP\\\\CAPCUT_PACKAGE /s /b\")",
+      "Bash(npm install *)",
+      "Bash(npm list *)",
+      "Bash(npx vite *)",
+      "Bash(start /B npx vite)",
+      "Bash(timeout 3)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(Start-Sleep 3)",
+      "Bash(Invoke-WebRequest -Uri \"http://localhost:5173\" -UseBasicParsing)",
+      "Bash(Select-Object -First 3)",
+      "PowerShell(Get-Content \"$env:LOCALAPPDATA\\\\CapCut\\\\User Data\\\\Projects\\\\com.lveditor.draft\\\\EPISODE\\\\draft_meta_info.json\" | ConvertFrom-Json | Select-Object draft_name, tm_draft_create, tm_draft_modified, draft_cover | Format-List)",
+      "Bash(npx electron-builder *)",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"const j = require\\('jimp'\\); console.log\\(Object.keys\\(j\\).join\\(', '\\)\\)\")",
+      "Bash(powershell.exe -Command ' *)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --win --x64)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false WIN_CSC_LINK=\"\" npx electron-builder --win --x64)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --win --x64 --dir)",
+      "Bash(node -e \"const r = require\\('rcedit'\\); console.log\\(typeof r, Object.keys\\(r\\)\\)\")",
+      "Bash(set CSC_IDENTITY_AUTO_DISCOVERY=false)",
+      "Bash(gh --version)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\GitHub CLI\"; gh auth login --web --hostname github.com 2>&1)"
+    ]
+  }
+}

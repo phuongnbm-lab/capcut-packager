@@ -1,0 +1,52 @@
+{
+  "name": "capcut-packager",
+  "version": "2026.05.19",
+  "description": "CapCut Project Exporter & Importer",
+  "author": {
+    "name": "Bá Phương",
+    "contact": "Zalo: 0904066020"
+  },
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "vite build && electron-builder",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "archiver": "^6.0.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "electron": "^29.1.4",
+    "electron-builder": "^24.13.3",
+    "jimp": "^1.6.1",
+    "rcedit": "^5.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite": "^5.1.6",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.baphuong.capcutpackager",
+    "productName": "CapCut Packager",
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico",
+      "verifyUpdateCodeSignature": false,
+      "signAndEditExecutable": false
+    },
+    "forceCodeSigning": false,
+    "afterPack": "./afterPack.js",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*",
+      "public/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    }
+  }
+}
