@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-const VERSION = '2026.05.21'
+const VERSION = '2026.05.22'
 const AUTHOR = 'Bá Phương'
 const ZALO = '0904066020'
 const REPO = 'phuongnbm-lab/capcut-packager'
@@ -97,7 +97,7 @@ export default function Header({ activeTab, setActiveTab }) {
               Ủng hộ tác giả
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 18, lineHeight: 1.6 }}>
-              Nếu app hữu ích, hãy ủng hộ tác giả một ly cà phê ☕ — quét mã QR bên dưới để chuyển khoản.
+              Nếu app hữu ích, hãy ủng hộ tác giả một ly Café ☕ — quét mã QR bên dưới để chuyển khoản.
             </div>
 
             {/* QR Code */}
