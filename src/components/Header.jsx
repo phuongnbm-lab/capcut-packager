@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-const VERSION = '2026.05.29'
+const VERSION = '2026.05.30'
 const AUTHOR = 'Bá Phương'
 const ZALO = '0904066020'
 const REPO = 'phuongnbm-lab/capcut-packager'
