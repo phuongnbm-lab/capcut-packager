@@ -383,35 +383,35 @@ ipcMain.handle('export-project', async (event, projectPath, outputFolder) => {
 ipcMain.handle('download-and-install-update', async (event, downloadUrl) => {
   const win = BrowserWindow.getAllWindows()[0]
   const tmpPath = path.join(os.tmpdir(), 'CapCutPackagerUpdate.exe')
-  const https = require('https')
+  const { net } = require('electron')
   const { spawn } = require('child_process')
 
-  const download = (url) => new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(tmpPath)
-    const get = (u) => {
-      https.get(u, (res) => {
-        if (res.statusCode === 301 || res.statusCode === 302) {
-          file.close(); get(res.headers.location); return
-        }
-        const total = parseInt(res.headers['content-length'] || '0')
-        let done = 0
-        res.on('data', chunk => {
+  try {
+    await new Promise((resolve, reject) => {
+      const request = net.request(downloadUrl)
+      const file = fs.createWriteStream(tmpPath)
+      let done = 0
+      let total = 0
+
+      request.on('response', (response) => {
+        total = parseInt(response.headers['content-length'] || '0')
+
+        response.on('data', (chunk) => {
           done += chunk.length
+          file.write(chunk)
           if (total > 0) win.webContents.send('update-download-progress', {
             percent: Math.round((done / total) * 100), done, total,
           })
         })
-        res.pipe(file)
-        file.on('finish', () => file.close(resolve))
-        res.on('error', reject)
-      }).on('error', reject)
-    }
-    get(url)
-  })
 
-  try {
-    await download(downloadUrl)
-    // /S = silent install, no wizard popup
+        response.on('end', () => file.close(resolve))
+        response.on('error', (err) => { file.close(); reject(err) })
+      })
+
+      request.on('error', (err) => { file.close(); reject(err) })
+      request.end()
+    })
+
     const child = spawn(tmpPath, ['/S'], { detached: true, stdio: 'ignore' })
     child.unref()
     setTimeout(() => app.quit(), 500)
