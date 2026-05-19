@@ -1,15 +1,36 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
-const VERSION = '2026.05.19'
+const VERSION = '2026.05.20'
 const AUTHOR = 'Bá Phương'
 const ZALO = '0904066020'
+const REPO = 'phuongnbm-lab/capcut-packager'
 
 export default function Header({ activeTab, setActiveTab }) {
   const [showAbout, setShowAbout] = useState(false)
   const [showDonate, setShowDonate] = useState(false)
+  const [updateStatus, setUpdateStatus] = useState('checking') // 'checking' | 'latest' | 'available'
+  const [latestVersion, setLatestVersion] = useState(null)
+
   const handleClose = () => window.electronAPI?.closeWindow?.()
   const handleMinimize = () => window.electronAPI?.minimizeWindow?.()
   const handleMaximize = () => window.electronAPI?.maximizeWindow?.()
+
+  useEffect(() => {
+    fetch(`https://api.github.com/repos/${REPO}/releases/latest`)
+      .then(r => r.json())
+      .then(data => {
+        const tag = data.tag_name?.replace(/^v/, '')
+        if (!tag) { setUpdateStatus('latest'); return }
+        setLatestVersion(tag)
+        setUpdateStatus(tag > VERSION ? 'available' : 'latest')
+      })
+      .catch(() => setUpdateStatus('latest'))
+  }, [])
+
+  const openRelease = () => {
+    window.electronAPI?.openFolder?.(`https://github.com/${REPO}/releases/latest`)
+    window.open(`https://github.com/${REPO}/releases/latest`, '_blank')
+  }
 
   return (
     <>
@@ -50,13 +71,18 @@ export default function Header({ activeTab, setActiveTab }) {
               padding: 10,
               display: 'inline-block',
               boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-              marginBottom: 16,
+              marginBottom: 10,
             }}>
               <img
                 src="donate.png"
                 alt="QR donate"
                 style={{ width: 220, height: 220, display: 'block', borderRadius: 6 }}
               />
+            </div>
+
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.6 }}>
+              Quét mã để mời mình ly cà phê nhé!<br />
+              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Cảm ơn bạn rất nhiều! ❤️</span>
             </div>
 
             <div style={{
@@ -164,7 +190,7 @@ export default function Header({ activeTab, setActiveTab }) {
               background: 'var(--bg-input)', padding: '1px 6px', borderRadius: 4,
             }}>v{VERSION}</span>
 
-            {/* Author badge — click to open About */}
+            {/* Author badge */}
             <button
               onClick={() => setShowAbout(true)}
               style={{
@@ -209,10 +235,38 @@ export default function Header({ activeTab, setActiveTab }) {
             </button>
           ))}
 
-          {/* Spacer */}
           <div style={{ flex: 1 }} />
 
-          {/* Buy me a Coffee button */}
+          {/* Update checker */}
+          {updateStatus === 'available' && (
+            <button
+              onClick={openRelease}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '5px 12px', borderRadius: 20,
+                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                color: '#fff', fontSize: 12, fontWeight: 700,
+                boxShadow: '0 0 12px rgba(34,197,94,0.6)',
+                animation: 'pulse-green 2s infinite',
+                marginBottom: 5, marginRight: 8,
+                border: 'none', cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'scale(1.05)'
+                e.currentTarget.style.boxShadow = '0 0 20px rgba(34,197,94,0.8)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'scale(1)'
+                e.currentTarget.style.boxShadow = '0 0 12px rgba(34,197,94,0.6)'
+              }}
+              title={`Có phiên bản mới: v${latestVersion}`}
+            >
+              ⬆ New update available!
+            </button>
+          )}
+
+          {/* Café button */}
           <button
             onClick={() => setShowDonate(true)}
             style={{
@@ -235,10 +289,17 @@ export default function Header({ activeTab, setActiveTab }) {
             }}
             title="Buy me a Coffee"
           >
-            ☕ Buy me a Coffee
+            ☕ Café
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes pulse-green {
+          0%, 100% { box-shadow: 0 0 12px rgba(34,197,94,0.6); }
+          50% { box-shadow: 0 0 22px rgba(34,197,94,1); }
+        }
+      `}</style>
     </>
   )
 }
