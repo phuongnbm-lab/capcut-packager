@@ -1,6 +1,6 @@
 {
   "name": "capcut-packager",
-  "version": "2026.05.27",
+  "version": "2026.05.28",
   "description": "CapCut Project Exporter & Importer",
   "author": {
     "name": "Bá Phương",
@@ -32,10 +32,15 @@
     "appId": "com.baphuong.capcutpackager",
     "productName": "CapCut Packager",
     "win": {
-      "target": "nsis",
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
       "icon": "public/icon.ico",
       "verifyUpdateCodeSignature": false,
       "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
     },
     "forceCodeSigning": false,
     "afterPack": "./afterPack.js",
