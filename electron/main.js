@@ -380,6 +380,46 @@ ipcMain.handle('export-project', async (event, projectPath, outputFolder) => {
   }
 })
 
+ipcMain.handle('download-and-install-update', async (event, downloadUrl) => {
+  const win = BrowserWindow.getAllWindows()[0]
+  const tmpPath = path.join(os.tmpdir(), 'CapCutPackagerUpdate.exe')
+  const https = require('https')
+  const { spawn } = require('child_process')
+
+  const download = (url) => new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(tmpPath)
+    const get = (u) => {
+      https.get(u, (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          file.close(); get(res.headers.location); return
+        }
+        const total = parseInt(res.headers['content-length'] || '0')
+        let done = 0
+        res.on('data', chunk => {
+          done += chunk.length
+          if (total > 0) win.webContents.send('update-download-progress', {
+            percent: Math.round((done / total) * 100), done, total,
+          })
+        })
+        res.pipe(file)
+        file.on('finish', () => file.close(resolve))
+        res.on('error', reject)
+      }).on('error', reject)
+    }
+    get(url)
+  })
+
+  try {
+    await download(downloadUrl)
+    spawn(tmpPath, [], { detached: true, stdio: 'ignore' }).unref()
+    app.quit()
+    return { success: true }
+  } catch (err) {
+    try { fs.unlinkSync(tmpPath) } catch {}
+    return { success: false, error: err.message }
+  }
+})
+
 ipcMain.handle('import-project', async (event, zipPath, targetFolder) => {
   const win = BrowserWindow.getAllWindows()[0]
   try {

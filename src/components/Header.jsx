@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-const VERSION = '2026.05.20'
+const VERSION = '2026.05.21'
 const AUTHOR = 'Bá Phương'
 const ZALO = '0904066020'
 const REPO = 'phuongnbm-lab/capcut-packager'
@@ -8,8 +8,10 @@ const REPO = 'phuongnbm-lab/capcut-packager'
 export default function Header({ activeTab, setActiveTab }) {
   const [showAbout, setShowAbout] = useState(false)
   const [showDonate, setShowDonate] = useState(false)
-  const [updateStatus, setUpdateStatus] = useState('checking') // 'checking' | 'latest' | 'available'
+  const [updateStatus, setUpdateStatus] = useState('checking') // 'checking' | 'latest' | 'available' | 'downloading'
   const [latestVersion, setLatestVersion] = useState(null)
+  const [downloadUrl, setDownloadUrl] = useState(null)
+  const [downloadPercent, setDownloadPercent] = useState(0)
 
   const handleClose = () => window.electronAPI?.closeWindow?.()
   const handleMinimize = () => window.electronAPI?.minimizeWindow?.()
@@ -22,14 +24,48 @@ export default function Header({ activeTab, setActiveTab }) {
         const tag = data.tag_name?.replace(/^v/, '')
         if (!tag) { setUpdateStatus('latest'); return }
         setLatestVersion(tag)
+        const asset = data.assets?.find(a => a.name.endsWith('.exe'))
+        if (asset) setDownloadUrl(asset.browser_download_url)
         setUpdateStatus(tag > VERSION ? 'available' : 'latest')
       })
       .catch(() => setUpdateStatus('latest'))
+
+    window.electronAPI?.onUpdateDownloadProgress?.(data => {
+      setDownloadPercent(data.percent)
+    })
   }, [])
 
-  const openRelease = () => {
-    window.electronAPI?.openFolder?.(`https://github.com/${REPO}/releases/latest`)
-    window.open(`https://github.com/${REPO}/releases/latest`, '_blank')
+  const handleUpdate = async () => {
+    if (!downloadUrl || updateStatus !== 'available') return
+    setUpdateStatus('downloading')
+    setDownloadPercent(0)
+    await window.electronAPI?.downloadAndInstallUpdate(downloadUrl)
+  }
+
+  const versionBadgeStyle = () => {
+    if (updateStatus === 'available') return {
+      fontSize: 10, padding: '2px 8px', borderRadius: 4, fontWeight: 700,
+      background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+      color: '#fff', cursor: 'pointer',
+      boxShadow: '0 0 10px rgba(34,197,94,0.7)',
+      animation: 'pulse-update 1.8s ease-in-out infinite',
+    }
+    if (updateStatus === 'downloading') return {
+      fontSize: 10, padding: '2px 8px', borderRadius: 4, fontWeight: 700,
+      background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+      color: '#fff', cursor: 'default',
+      minWidth: 80,
+    }
+    return {
+      fontSize: 10, color: 'var(--text-muted)',
+      background: 'var(--bg-input)', padding: '2px 6px', borderRadius: 4,
+    }
+  }
+
+  const versionLabel = () => {
+    if (updateStatus === 'available') return `⬆ v${latestVersion} available!`
+    if (updateStatus === 'downloading') return `⬇ ${downloadPercent}%`
+    return `v${VERSION}`
   }
 
   return (
@@ -97,10 +133,7 @@ export default function Header({ activeTab, setActiveTab }) {
               <span style={{ color: '#0d7a3e', fontWeight: 700 }}>Napas 247</span>
             </div>
 
-            <div style={{
-              fontSize: 12, color: 'var(--text-secondary)',
-              marginBottom: 18,
-            }}>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 18 }}>
               Tác giả: <strong style={{ color: 'var(--text-primary)' }}>{AUTHOR}</strong>
               {' '}· Zalo: <strong style={{ color: 'var(--accent)' }}>{ZALO}</strong>
             </div>
@@ -185,10 +218,19 @@ export default function Header({ activeTab, setActiveTab }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src="icon.ico" alt="logo" style={{ width: 24, height: 24, borderRadius: 5, objectFit: 'contain' }} />
             <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>CapCut Packager</span>
-            <span style={{
-              fontSize: 10, color: 'var(--text-muted)',
-              background: 'var(--bg-input)', padding: '1px 6px', borderRadius: 4,
-            }}>v{VERSION}</span>
+
+            {/* Version badge — glows green when update available, click to auto-update */}
+            <span
+              onClick={updateStatus === 'available' ? handleUpdate : undefined}
+              style={versionBadgeStyle()}
+              title={
+                updateStatus === 'available' ? `Click để tải & cài v${latestVersion} tự động` :
+                updateStatus === 'downloading' ? `Đang tải bản mới...` :
+                `Phiên bản hiện tại`
+              }
+            >
+              {versionLabel()}
+            </span>
 
             {/* Author badge */}
             <button
@@ -237,36 +279,7 @@ export default function Header({ activeTab, setActiveTab }) {
 
           <div style={{ flex: 1 }} />
 
-          {/* Update checker */}
-          {updateStatus === 'available' && (
-            <button
-              onClick={openRelease}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '5px 12px', borderRadius: 20,
-                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                color: '#fff', fontSize: 12, fontWeight: 700,
-                boxShadow: '0 0 12px rgba(34,197,94,0.6)',
-                animation: 'pulse-green 2s infinite',
-                marginBottom: 5, marginRight: 8,
-                border: 'none', cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'scale(1.05)'
-                e.currentTarget.style.boxShadow = '0 0 20px rgba(34,197,94,0.8)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'scale(1)'
-                e.currentTarget.style.boxShadow = '0 0 12px rgba(34,197,94,0.6)'
-              }}
-              title={`Có phiên bản mới: v${latestVersion}`}
-            >
-              ⬆ New update available!
-            </button>
-          )}
-
-          {/* Café button */}
+          {/* Buy me a Coffee button */}
           <button
             onClick={() => setShowDonate(true)}
             style={{
@@ -289,15 +302,15 @@ export default function Header({ activeTab, setActiveTab }) {
             }}
             title="Buy me a Coffee"
           >
-            ☕ Café
+            ☕ Buy me a Coffee
           </button>
         </div>
       </div>
 
       <style>{`
-        @keyframes pulse-green {
-          0%, 100% { box-shadow: 0 0 12px rgba(34,197,94,0.6); }
-          50% { box-shadow: 0 0 22px rgba(34,197,94,1); }
+        @keyframes pulse-update {
+          0%, 100% { box-shadow: 0 0 8px rgba(34,197,94,0.6); transform: scale(1); }
+          50% { box-shadow: 0 0 18px rgba(34,197,94,1); transform: scale(1.06); }
         }
       `}</style>
     </>
