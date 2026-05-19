@@ -412,9 +412,13 @@ ipcMain.handle('download-and-install-update', async (event, downloadUrl) => {
       request.end()
     })
 
-    const child = spawn(tmpPath, ['/S'], { detached: true, stdio: 'ignore' })
-    child.unref()
-    setTimeout(() => app.quit(), 500)
+    // PowerShell: run installer silently, WAIT for it to finish, then launch new app
+    const appExe = path.join(process.env.LOCALAPPDATA || '', 'Programs', 'CapCut Packager', 'CapCut Packager.exe')
+    const psCmd = `Start-Process -FilePath '${tmpPath.replace(/'/g, "''")}' -ArgumentList '/S' -Wait; Start-Sleep -Seconds 1; Start-Process -FilePath '${appExe.replace(/'/g, "''")}'`
+    spawn('powershell.exe', ['-WindowStyle', 'Hidden', '-NonInteractive', '-Command', psCmd], {
+      detached: true, stdio: 'ignore',
+    }).unref()
+    setTimeout(() => app.quit(), 800)
     return { success: true }
   } catch (err) {
     try { fs.unlinkSync(tmpPath) } catch {}
